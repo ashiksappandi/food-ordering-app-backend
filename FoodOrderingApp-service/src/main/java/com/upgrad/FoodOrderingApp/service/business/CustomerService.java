@@ -6,6 +6,7 @@ import com.upgrad.FoodOrderingApp.service.dao.CustomerDao;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerAuthEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
+import com.upgrad.FoodOrderingApp.service.exception.AuthorizationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.SignUpRestrictedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.exception.ConstraintViolationException;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.*;
@@ -23,7 +25,7 @@ import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.*;
 public class CustomerService {
 
     @Autowired
-    CustomerDao customerDao;
+    private CustomerDao customerDao;
 
     @Autowired
     private PasswordCryptographyProvider passwordCryptographyProvider;
@@ -44,7 +46,7 @@ public class CustomerService {
             if(!isStrongPassword(newCustomer.getPassword())){
                 throw new SignUpRestrictedException(SGR_004.getCode(), SGR_004.getDefaultMessage());
             }
-            String[] encryptedText = passwordCryptographyProvider.encrypt(newCustomer.getPassword());
+            final String[] encryptedText = passwordCryptographyProvider.encrypt(newCustomer.getPassword());
             newCustomer.setSalt(encryptedText[0]);
             newCustomer.setPassword(encryptedText[1]);
             return customerDao.saveCustomer(newCustomer);
@@ -66,7 +68,7 @@ public class CustomerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CustomerAuthEntity authenticate(final String contactNumber, String password) throws AuthenticationFailedException {
+    public CustomerAuthEntity authenticate(final String contactNumber, final String password) throws AuthenticationFailedException {
         final CustomerEntity customerEntity = getCustomerByContact(contactNumber);
         if(customerEntity == null){
             throw new AuthenticationFailedException(ATH_001.getCode(),ATH_001.getDefaultMessage());
@@ -90,12 +92,35 @@ public class CustomerService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CustomerAuthEntity logout(final String accessToken) throws AuthorizationFailedException {
+        CustomerAuthEntity customerAuthEntity = getCustomerByAccessToken(accessToken);
+        if(customerAuthEntity != null){
+            if(customerAuthEntity.getExpiresAt().isBefore(LocalDateTime.now())){
+                throw new AuthorizationFailedException(ATHR_003.getCode(),ATHR_003.getDefaultMessage());
+            }
+            else{
+                if(customerAuthEntity.getLogoutAt() != null){
+                    System.out.println(customerAuthEntity.getLogoutAt());
+                    throw new AuthorizationFailedException(ATHR_002.getCode(),ATHR_002.getDefaultMessage());
+                }
+                else{
+                    customerAuthEntity.setLogoutAt(LocalDateTime.now());
+                    return customerDao.saveAuthentication(customerAuthEntity);
+                }
+            }
+        }
+        else{
+            throw new AuthorizationFailedException(ATHR_001.getCode(),ATHR_001.getDefaultMessage());
+        }
+    }
+
     private CustomerEntity getCustomerByContact(final String contactNumber){
         return customerDao.getCustomerByContact(contactNumber);
     }
 
-    private CustomerAuthEntity getCustomerByAuthToken(final String authToken){
-        return customerDao.getCustomerByAuthToken(authToken);
+    private CustomerAuthEntity getCustomerByAccessToken(final String accessToken){
+        return customerDao.getCustomerByAccessToken(accessToken);
     }
 
     private boolean validateMandatoryFields(final CustomerEntity customer){
@@ -122,5 +147,4 @@ public class CustomerService {
     private boolean isValidEmail(final String email){
         return email.matches(AppConstants.REG_EXP_VALID_EMAIL);
     }
-
 }

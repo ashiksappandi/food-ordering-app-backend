@@ -38,10 +38,10 @@ public class CustomerDao {
         }
     }
 
-    public CustomerAuthEntity getCustomerByAuthToken(String authToken) {
+    public CustomerAuthEntity getCustomerByAccessToken(String accessToken) {
         try {
             return entityManager.createNamedQuery("Customer.ByAuthToken", CustomerAuthEntity.class)
-                    .setParameter("accessToken", authToken)
+                    .setParameter("accessToken", accessToken)
                     .getSingleResult();
         } catch (NoResultException nre) {
             return null;
