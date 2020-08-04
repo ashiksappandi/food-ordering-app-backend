@@ -17,4 +17,5 @@ public class AppConstants {
     public static final Integer EIGHT_8 = 8;
     public static final Integer NUMBER_10 = 10;
     public static final String COLON = ":";
+    public static final String HTTP_ACCESS_TOKEN_HEADER = "access-token";
 }
