@@ -3,7 +3,9 @@ package com.upgrad.FoodOrderingApp.service.business;
 import com.upgrad.FoodOrderingApp.service.common.AppConstants;
 import com.upgrad.FoodOrderingApp.service.common.UnexpectedException;
 import com.upgrad.FoodOrderingApp.service.dao.CustomerDao;
+import com.upgrad.FoodOrderingApp.service.entity.CustomerAuthEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
+import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.SignUpRestrictedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.SmartValidator;
 
-import javax.validation.*;
-
-import java.util.Set;
+import java.time.ZonedDateTime;
 
 import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.*;
 
@@ -68,6 +65,39 @@ public class CustomerService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CustomerAuthEntity authenticate(final String contactNumber, String password) throws AuthenticationFailedException {
+        final CustomerEntity customerEntity = getCustomerByContact(contactNumber);
+        if(customerEntity == null){
+            throw new AuthenticationFailedException(ATH_001.getCode(),ATH_001.getDefaultMessage());
+        }
+        final String encryptedPassword = PasswordCryptographyProvider.encrypt(password, customerEntity.getSalt());
+        if(encryptedPassword!=null && encryptedPassword.equals(customerEntity.getPassword())){
+            final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(encryptedPassword);
+            final CustomerAuthEntity customerAuthEntity = new CustomerAuthEntity();
+            customerAuthEntity.setCustomer(customerEntity);
+            customerAuthEntity.setUuid(customerEntity.getUuid());
+            final ZonedDateTime loginAt = ZonedDateTime.now();
+            final ZonedDateTime expiresAt = loginAt.plusHours(AppConstants.EIGHT_8);
+            customerAuthEntity.setLoginAt(loginAt.toLocalDateTime());
+            customerAuthEntity.setExpiresAt(expiresAt.toLocalDateTime());
+            customerAuthEntity.setAccessToken(jwtTokenProvider.generateToken(customerEntity.getUuid(), loginAt, expiresAt));
+            return customerDao.saveAuthentication(customerAuthEntity);
+
+        }
+        else{
+            throw new AuthenticationFailedException(ATH_002.getCode(),ATH_002.getDefaultMessage());
+        }
+    }
+
+    private CustomerEntity getCustomerByContact(final String contactNumber){
+        return customerDao.getCustomerByContact(contactNumber);
+    }
+
+    private CustomerAuthEntity getCustomerByAuthToken(final String authToken){
+        return customerDao.getCustomerByAuthToken(authToken);
+    }
+
     private boolean validateMandatoryFields(final CustomerEntity customer){
         return (customer.getContactNumber() != null) &&
                 (customer.getFirstName() != null) &&
@@ -92,4 +122,5 @@ public class CustomerService {
     private boolean isValidEmail(final String email){
         return email.matches(AppConstants.REG_EXP_VALID_EMAIL);
     }
+
 }
