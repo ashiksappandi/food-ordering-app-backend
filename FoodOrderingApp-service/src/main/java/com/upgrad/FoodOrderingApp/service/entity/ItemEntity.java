@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "item")
@@ -25,7 +26,7 @@ public class ItemEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private Integer uuid;
+    private UUID uuid;
 
     @Column(name = "item_name")
     @NotNull
@@ -63,11 +64,11 @@ public class ItemEntity implements Serializable {
         this.id = id;
     }
 
-    public Integer getUuid() {
+    public UUID getUuid() {
         return uuid;
     }
 
-    public void setUuid(Integer uuid) {
+    public void setUuid(UUID uuid) {
         this.uuid = uuid;
     }
 

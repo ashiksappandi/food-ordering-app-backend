@@ -6,13 +6,16 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "category")
-@NamedQueries(
-    @NamedQuery(name = "Category.fetchAllCategories", query = "SELECT c FROM CategoryEntity c")
-)
+@NamedQueries({
+        @NamedQuery(name = "Category.fetchAllCategories", query = "SELECT c FROM CategoryEntity c"),
+        @NamedQuery(name = "Category.fetchCategoryItem", query = "SELECT ci FROM CategoryEntity ci WHERE ci.uuid=:categoryId")
+})
 public class CategoryEntity implements Serializable {
     @Id
     @Column(name = "id")
@@ -25,11 +28,15 @@ public class CategoryEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private UUID uuid;
+    private String uuid;
 
     @Column(name = "category_name")
     @Size(max = 30)
     private String categoryName;
+
+    @ManyToMany(mappedBy = "categories",
+            fetch = FetchType.EAGER)
+    private Set<ItemEntity> items = new HashSet<>();
 
     public Integer getId() {
         return id;
@@ -39,11 +46,11 @@ public class CategoryEntity implements Serializable {
         this.id = id;
     }
 
-    public UUID getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
@@ -53,6 +60,14 @@ public class CategoryEntity implements Serializable {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public Set<ItemEntity> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<ItemEntity> items) {
+        this.items = items;
     }
 
     @Override
