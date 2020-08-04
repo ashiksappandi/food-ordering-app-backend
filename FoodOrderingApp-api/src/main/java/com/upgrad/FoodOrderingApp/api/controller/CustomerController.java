@@ -72,7 +72,7 @@ public class CustomerController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/logout", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LogoutResponse> logoutCustomer(@RequestHeader("access-token") final String headerParam) throws UnexpectedException, AuthorizationFailedException {
+    public ResponseEntity<LogoutResponse> logoutCustomer(@RequestHeader("authorization") final String headerParam) throws UnexpectedException, AuthorizationFailedException {
         String accessToken = StringUtils.substringAfter(headerParam,"Bearer ");
         if(accessToken == null || accessToken.isEmpty()){
             throw new UnexpectedException(GEN_001);
