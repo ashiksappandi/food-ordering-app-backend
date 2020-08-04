@@ -12,10 +12,13 @@ public enum GenericErrorCode implements ErrorCode {
      */
     GEN_001("GEN-001", "An unexpected error occurred. Please contact System Administrator"),
     SGR_001("SGR-001","This contact number is already registered! Try other contact number."),
-    SGR_005("SGR-005","Except last name all fields should be filled"),
     SGR_002("SGR-002","Invalid email-id format!"),
     SGR_003("SGR-003","Invalid contact number!"),
-    SGR_004("SGR-004","Weak password!");
+    SGR_004("SGR-004","Weak password!"),
+    SGR_005("SGR-005","Except last name all fields should be filled"),
+    ATH_001("ATH-001","This contact number has not been registered!"),
+    ATH_002("ATH-002","Invalid Credentials"),
+    ATH_003("ATH-003","Incorrect format of decoded customer name and password");
 
     private static final Map<String, GenericErrorCode> LOOKUP = new HashMap<String, GenericErrorCode>();
 
