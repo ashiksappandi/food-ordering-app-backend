@@ -21,7 +21,7 @@ public class AddressEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private Integer uuid;
+    private String uuid;
 
     @Column(name = "flat_buil_number")
     @Size(max = 255)
@@ -54,11 +54,11 @@ public class AddressEntity implements Serializable {
         this.id = id;
     }
 
-    public Integer getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(Integer uuid) {
+    public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 

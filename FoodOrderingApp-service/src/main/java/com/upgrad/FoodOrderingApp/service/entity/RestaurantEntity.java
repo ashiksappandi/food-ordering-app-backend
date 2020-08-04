@@ -8,11 +8,14 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "restaurant")
+@NamedQueries({
+    @NamedQuery(name = "Restaurants.fetchAll", query = "SELECT r FROM RestaurantEntity r ORDER BY r.customerRating DESC")  })
 public class RestaurantEntity implements Serializable {
     @Id
     @Column(name = "id")
@@ -25,7 +28,7 @@ public class RestaurantEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private Integer uuid;
+    private String uuid;
 
     @Column(name = "restaurant_name")
     @NotNull
@@ -38,7 +41,7 @@ public class RestaurantEntity implements Serializable {
 
     @Column(name = "customer_rating")
     @NotNull
-    private Integer customerRating;
+    private BigDecimal customerRating;
 
     @Column(name = "average_price_for_two")
     @NotNull
@@ -77,11 +80,11 @@ public class RestaurantEntity implements Serializable {
         this.id = id;
     }
 
-    public Integer getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(Integer uuid) {
+    public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
@@ -101,11 +104,11 @@ public class RestaurantEntity implements Serializable {
         this.photoUrl = photoUrl;
     }
 
-    public Integer getCustomerRating() {
+    public BigDecimal getCustomerRating() {
         return customerRating;
     }
 
-    public void setCustomerRating(Integer customerRating) {
+    public void setCustomerRating(BigDecimal customerRating) {
         this.customerRating = customerRating;
     }
 
