@@ -6,9 +6,13 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.UUID;
 
 @Entity
 @Table(name = "category")
+@NamedQueries(
+    @NamedQuery(name = "Category.fetchAllCategories", query = "SELECT c FROM CategoryEntity c")
+)
 public class CategoryEntity implements Serializable {
     @Id
     @Column(name = "id")
@@ -21,7 +25,7 @@ public class CategoryEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private Integer uuid;
+    private UUID uuid;
 
     @Column(name = "category_name")
     @Size(max = 30)
@@ -35,11 +39,11 @@ public class CategoryEntity implements Serializable {
         this.id = id;
     }
 
-    public Integer getUuid() {
+    public UUID getUuid() {
         return uuid;
     }
 
-    public void setUuid(Integer uuid) {
+    public void setUuid(UUID uuid) {
         this.uuid = uuid;
     }
 
