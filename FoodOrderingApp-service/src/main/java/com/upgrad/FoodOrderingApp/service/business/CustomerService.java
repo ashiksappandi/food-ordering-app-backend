@@ -63,6 +63,9 @@ public class CustomerService {
                 throw new UnexpectedException(GEN_001, dataIntegrityViolationException);
             }
         }
+        catch (Exception exception){
+            throw new UnexpectedException(GEN_001, exception);
+        }
     }
 
     private boolean validateMandatoryFields(final CustomerEntity customer){
