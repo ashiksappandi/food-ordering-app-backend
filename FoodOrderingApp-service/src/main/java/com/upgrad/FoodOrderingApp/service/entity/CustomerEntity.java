@@ -14,9 +14,9 @@ import java.util.Set;
 public class CustomerEntity implements Serializable {
 
     @Id
+    @GeneratedValue(generator = "customerIdGenerator")
+    @SequenceGenerator(name = "customerIdGenerator",sequenceName = "customer_id_seq",initialValue = 1,allocationSize = 1)
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customerIdGenerator")
-    @SequenceGenerator(name = "customerIdGenerator",sequenceName = "customer_id_seq")
     @ToStringExclude
     @HashCodeExclude
     private Integer id;
