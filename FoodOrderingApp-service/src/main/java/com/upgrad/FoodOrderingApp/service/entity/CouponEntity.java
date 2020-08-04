@@ -8,12 +8,12 @@ import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "category")
-public class CategoryEntity implements Serializable {
+@Table(name = "coupon")
+public class CouponEntity implements Serializable {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categoryIdGenerator")
-    @SequenceGenerator(name = "categoryIdGenerator", sequenceName = "category_id_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "couponIdGenerator")
+    @SequenceGenerator(name = "couponIdGenerator", sequenceName = "coupon_id_seq")
     @ToStringExclude
     @HashCodeExclude
     private Integer id;
@@ -23,9 +23,13 @@ public class CategoryEntity implements Serializable {
     @Size(max = 200)
     private Integer uuid;
 
-    @Column(name = "category_name")
-    @Size(max = 30)
-    private String categoryName;
+    @Column(name = "coupon_name")
+    @Size(max = 255)
+    private String couponName;
+
+    @Column(name = "percent")
+    @NotNull
+    private Double percent;
 
     public Integer getId() {
         return id;
@@ -43,12 +47,20 @@ public class CategoryEntity implements Serializable {
         this.uuid = uuid;
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public String getCouponName() {
+        return couponName;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
+    public void setCouponName(String couponName) {
+        this.couponName = couponName;
+    }
+
+    public Double getPercent() {
+        return percent;
+    }
+
+    public void setPercent(Double percent) {
+        this.percent = percent;
     }
 
     @Override
