@@ -1,6 +1,7 @@
 package com.upgrad.FoodOrderingApp.api.controller;
 
 import com.upgrad.FoodOrderingApp.api.model.LoginResponse;
+import com.upgrad.FoodOrderingApp.api.model.LogoutResponse;
 import com.upgrad.FoodOrderingApp.service.business.CustomerService;
 import com.upgrad.FoodOrderingApp.service.common.AppConstants;
 import com.upgrad.FoodOrderingApp.service.common.UnexpectedException;
@@ -8,6 +9,7 @@ import com.upgrad.FoodOrderingApp.service.entity.CustomerAuthEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import com.upgrad.FoodOrderingApp.service.entity.RestaurantEntity;
 import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
+import com.upgrad.FoodOrderingApp.service.exception.AuthorizationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.SignUpRestrictedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,6 @@ import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.GEN_001
 @RequestMapping("/customer")
 public class CustomerController {
     // TODO :
-    //  - logout - "/customer/logout"
     //  - Update - “/customer”
     //  - Change Password - “/customer/password”
     @Autowired
@@ -68,5 +69,17 @@ public class CustomerController {
         headers.add(AppConstants.HTTP_ACCESS_TOKEN_HEADER,customerAuth.getAccessToken());
         headers.setAccessControlExposeHeaders(Collections.singletonList(AppConstants.HTTP_ACCESS_TOKEN_HEADER));
         return new ResponseEntity<LoginResponse>(response, headers, HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/logout", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LogoutResponse> logoutCustomer(@RequestHeader("access-token") final String headerParam) throws UnexpectedException, AuthorizationFailedException {
+        String accessToken = StringUtils.substringAfter(headerParam,"Bearer ");
+        if(accessToken == null || accessToken.isEmpty()){
+            throw new UnexpectedException(GEN_001);
+        }
+        final CustomerAuthEntity customerAuthEntity = customerService.logout(accessToken);
+        final LogoutResponse response = new LogoutResponse();
+        response.id(customerAuthEntity.getCustomer().getUuid()).message("LOGGED OUT SUCCESSFULLY");
+        return new ResponseEntity<LogoutResponse>(response, HttpStatus.OK);
     }
 }

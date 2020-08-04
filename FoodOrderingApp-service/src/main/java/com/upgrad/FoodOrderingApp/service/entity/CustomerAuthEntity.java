@@ -12,12 +12,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "customer_auth")
+@NamedQueries({
+        @NamedQuery(name = "Customer.ByAuthToken", query = "SELECT C FROM CustomerAuthEntity C WHERE C.accessToken = :accessToken")
+})
 public class CustomerAuthEntity implements Serializable {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customerAuthIdGenerator")
-    @SequenceGenerator(name = "customerAuthIdGenerator",sequenceName = "customer_auth_id_seq")
+    @GeneratedValue(generator = "customerAuthIdGenerator")
+    @SequenceGenerator(name = "customerAuthIdGenerator",sequenceName = "customer_auth_id_seq",initialValue = 1,allocationSize = 1)
     @ToStringExclude
     @HashCodeExclude
     private Integer id;

@@ -2,6 +2,7 @@ package com.upgrad.FoodOrderingApp.api.exception;
 
 import com.upgrad.FoodOrderingApp.service.common.UnexpectedException;
 import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
+import com.upgrad.FoodOrderingApp.service.exception.AuthorizationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.SignUpRestrictedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,12 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationFailedException(AuthenticationFailedException afe, WebRequest webRequest) {
         return new ResponseEntity<>(
                 new ErrorResponse().code(afe.getCode()).message(afe.getErrorMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthorizationFailedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationFailedException(AuthorizationFailedException afe, WebRequest webRequest) {
+        return new ResponseEntity<>(
+                new ErrorResponse().code(afe.getCode()).message(afe.getErrorMessage()), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(UnexpectedException.class)
