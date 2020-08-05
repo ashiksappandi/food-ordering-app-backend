@@ -8,6 +8,7 @@ import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.AuthorizationFailedException;
 import com.upgrad.FoodOrderingApp.service.exception.SignUpRestrictedException;
+import com.upgrad.FoodOrderingApp.service.exception.UpdateCustomerException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,25 +32,25 @@ public class CustomerService {
     private PasswordCryptographyProvider passwordCryptographyProvider;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CustomerEntity saveCustomer(final CustomerEntity newCustomer) throws SignUpRestrictedException{
+    public CustomerEntity saveCustomer(final CustomerEntity customerEntity) throws SignUpRestrictedException{
         try {
-            System.out.println(newCustomer.toString());
-            if(!validateMandatoryFields(newCustomer)){
+            System.out.println(customerEntity.toString());
+            if(!validateMandatoryFields(customerEntity)){
                 throw new SignUpRestrictedException(SGR_005.getCode(), SGR_005.getDefaultMessage());
             }
-            if(!isValidEmail(newCustomer.getEmail())){
+            if(!isValidEmail(customerEntity.getEmail())){
                 throw new SignUpRestrictedException(SGR_002.getCode(), SGR_002.getDefaultMessage());
             }
-            if(!isValidContactNumber(newCustomer.getContactNumber())){
+            if(!isValidContactNumber(customerEntity.getContactNumber())){
                 throw new SignUpRestrictedException(SGR_003.getCode(), SGR_003.getDefaultMessage());
             }
-            if(!isStrongPassword(newCustomer.getPassword())){
+            if(!isStrongPassword(customerEntity.getPassword())){
                 throw new SignUpRestrictedException(SGR_004.getCode(), SGR_004.getDefaultMessage());
             }
-            final String[] encryptedText = passwordCryptographyProvider.encrypt(newCustomer.getPassword());
-            newCustomer.setSalt(encryptedText[0]);
-            newCustomer.setPassword(encryptedText[1]);
-            return customerDao.saveCustomer(newCustomer);
+            final String[] encryptedText = passwordCryptographyProvider.encrypt(customerEntity.getPassword());
+            customerEntity.setSalt(encryptedText[0]);
+            customerEntity.setPassword(encryptedText[1]);
+            return customerDao.saveCustomer(customerEntity);
         }catch (DataIntegrityViolationException dataIntegrityViolationException) {
             if (dataIntegrityViolationException.getCause() instanceof ConstraintViolationException) {
                 String constraintName = ((ConstraintViolationException) dataIntegrityViolationException.getCause()).getConstraintName();
@@ -69,7 +70,7 @@ public class CustomerService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public CustomerAuthEntity authenticate(final String contactNumber, final String password) throws AuthenticationFailedException {
-        final CustomerEntity customerEntity = getCustomerByContact(contactNumber);
+        final CustomerEntity customerEntity = getCustomerByContactNumber(contactNumber);
         if(customerEntity == null){
             throw new AuthenticationFailedException(ATH_001.getCode(),ATH_001.getDefaultMessage());
         }
@@ -84,7 +85,7 @@ public class CustomerService {
             customerAuthEntity.setLoginAt(loginAt.toLocalDateTime());
             customerAuthEntity.setExpiresAt(expiresAt.toLocalDateTime());
             customerAuthEntity.setAccessToken(jwtTokenProvider.generateToken(customerEntity.getUuid(), loginAt, expiresAt));
-            return customerDao.saveAuthentication(customerAuthEntity);
+            return customerDao.saveCustomerAuthentication(customerAuthEntity);
 
         }
         else{
@@ -94,7 +95,33 @@ public class CustomerService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public CustomerAuthEntity logout(final String accessToken) throws AuthorizationFailedException {
-        CustomerAuthEntity customerAuthEntity = getCustomerByAccessToken(accessToken);
+        final CustomerAuthEntity customerAuthEntity = getCustomerAuthenticationByAccessToken(accessToken);
+        customerAuthEntity.setLogoutAt(LocalDateTime.now());
+        return customerDao.saveCustomerAuthentication(customerAuthEntity);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CustomerEntity getCustomer(final String accessToken) throws AuthorizationFailedException {
+        final CustomerAuthEntity customerAuthEntity = getCustomerAuthenticationByAccessToken(accessToken);
+        return customerAuthEntity.getCustomer();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CustomerEntity updateCustomer(final CustomerEntity customerEntity) throws UpdateCustomerException {
+        if(customerEntity.getFirstName()!=null && !customerEntity.getFirstName().isEmpty()){
+            return customerDao.updateCustomer(customerEntity);
+        }
+        else{
+            throw new UpdateCustomerException(UCR_002.getCode(),UCR_002.getDefaultMessage());
+        }
+    }
+
+    private CustomerEntity getCustomerByContactNumber(final String contactNumber){
+        return customerDao.getCustomerByContactNumber(contactNumber);
+    }
+
+    public CustomerAuthEntity getCustomerAuthenticationByAccessToken(final String accessToken) throws AuthorizationFailedException {
+        final CustomerAuthEntity customerAuthEntity = customerDao.getCustomerAuthenticationByAccessToken(accessToken);
         if(customerAuthEntity != null){
             if(customerAuthEntity.getExpiresAt().isBefore(LocalDateTime.now())){
                 throw new AuthorizationFailedException(ATHR_003.getCode(),ATHR_003.getDefaultMessage());
@@ -105,8 +132,7 @@ public class CustomerService {
                     throw new AuthorizationFailedException(ATHR_002.getCode(),ATHR_002.getDefaultMessage());
                 }
                 else{
-                    customerAuthEntity.setLogoutAt(LocalDateTime.now());
-                    return customerDao.saveAuthentication(customerAuthEntity);
+                    return customerAuthEntity;
                 }
             }
         }
@@ -115,23 +141,11 @@ public class CustomerService {
         }
     }
 
-    private CustomerEntity getCustomerByContact(final String contactNumber){
-        return customerDao.getCustomerByContact(contactNumber);
-    }
-
-    private CustomerAuthEntity getCustomerByAccessToken(final String accessToken){
-        return customerDao.getCustomerByAccessToken(accessToken);
-    }
-
-    private boolean validateMandatoryFields(final CustomerEntity customer){
-        return (customer.getContactNumber() != null) &&
-                (customer.getFirstName() != null) &&
-                        (customer.getEmail() != null) &&
-                                (customer.getPassword() != null);
-    }
-
-    private boolean validatePassword(final CustomerEntity customer){
-        return true;
+    private boolean validateMandatoryFields(final CustomerEntity customerEntity){
+        return (customerEntity.getContactNumber() != null && !customerEntity.getContactNumber().isEmpty()) &&
+                (customerEntity.getFirstName() != null && !customerEntity.getFirstName().isEmpty()) &&
+                        (customerEntity.getEmail() != null && !customerEntity.getEmail().isEmpty()) &&
+                                (customerEntity.getPassword() != null && !customerEntity.getPassword().isEmpty());
     }
 
     // This method users regular expressions to guage the strength of a user's
@@ -147,4 +161,5 @@ public class CustomerService {
     private boolean isValidEmail(final String email){
         return email.matches(AppConstants.REG_EXP_VALID_EMAIL);
     }
+
 }

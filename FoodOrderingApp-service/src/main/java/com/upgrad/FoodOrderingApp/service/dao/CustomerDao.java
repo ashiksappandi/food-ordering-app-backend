@@ -17,18 +17,18 @@ public class CustomerDao {
     private EntityManager entityManager;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CustomerEntity saveCustomer(final CustomerEntity newCustomer) {
-        entityManager.persist(newCustomer);
-        System.out.println(newCustomer.toString());
-        return newCustomer;
+    public CustomerEntity saveCustomer(final CustomerEntity customerEntity) {
+        entityManager.persist(customerEntity);
+        System.out.println(customerEntity.toString());
+        return customerEntity;
     }
 
-    public CustomerAuthEntity saveAuthentication(final CustomerAuthEntity customerAuthEntity) {
+    public CustomerAuthEntity saveCustomerAuthentication(final CustomerAuthEntity customerAuthEntity) {
         entityManager.persist(customerAuthEntity);
         return customerAuthEntity;
     }
 
-    public CustomerEntity getCustomerByContact(final String contactNumber){
+    public CustomerEntity getCustomerByContactNumber(final String contactNumber){
         try {
             return entityManager.createNamedQuery("Customer.ByContact", CustomerEntity.class)
                     .setParameter("contactNumber", contactNumber)
@@ -38,7 +38,7 @@ public class CustomerDao {
         }
     }
 
-    public CustomerAuthEntity getCustomerByAccessToken(String accessToken) {
+    public CustomerAuthEntity getCustomerAuthenticationByAccessToken(String accessToken) {
         try {
             return entityManager.createNamedQuery("Customer.ByAuthToken", CustomerAuthEntity.class)
                     .setParameter("accessToken", accessToken)
@@ -46,5 +46,9 @@ public class CustomerDao {
         } catch (NoResultException nre) {
             return null;
         }
+    }
+
+    public CustomerEntity updateCustomer(final CustomerEntity customerEntity) {
+        return entityManager.merge(customerEntity);
     }
 }
