@@ -7,6 +7,7 @@ import com.upgrad.FoodOrderingApp.service.business.CategoryService;
 import com.upgrad.FoodOrderingApp.service.entity.CategoryEntity;
 import com.upgrad.FoodOrderingApp.service.entity.ItemEntity;
 import com.upgrad.FoodOrderingApp.service.exception.CategoryNotFoundException;
+import static com.upgrad.FoodOrderingApp.service.common.ItemType.NON_VEG;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 import java.util.UUID;
 
-import static com.upgrad.FoodOrderingApp.service.common.ItemType.NON_VEG;
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +41,7 @@ public class CategoryControllerTest {
     private CategoryService mockCategoryService;
 
     //This test case passes when you have are able to fetch any category by its id.
+
     @Test
     public void shouldGetCategoryById() throws Exception {
         final ItemEntity itemEntity = new ItemEntity();

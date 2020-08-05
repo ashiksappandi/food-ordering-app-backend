@@ -1,5 +1,6 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import com.upgrad.FoodOrderingApp.service.common.ItemType;
 import org.apache.commons.lang3.builder.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -26,7 +27,7 @@ public class ItemEntity implements Serializable {
     @Column(name = "uuid")
     @NotNull
     @Size(max = 200)
-    private UUID uuid;
+    private String uuid;
 
     @Column(name = "item_name")
     @NotNull
@@ -40,7 +41,7 @@ public class ItemEntity implements Serializable {
     @Column(name = "type")
     @Size(max = 10)
     @NotNull
-    private String type;
+    private ItemType type;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "category_item",
@@ -64,11 +65,11 @@ public class ItemEntity implements Serializable {
         this.id = id;
     }
 
-    public UUID getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
@@ -88,11 +89,11 @@ public class ItemEntity implements Serializable {
         this.price = price;
     }
 
-    public String getType() {
+    public ItemType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ItemType type) {
         this.type = type;
     }
 

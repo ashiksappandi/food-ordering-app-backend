@@ -6,9 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "category")
@@ -36,7 +34,7 @@ public class CategoryEntity implements Serializable {
 
     @ManyToMany(mappedBy = "categories",
             fetch = FetchType.EAGER)
-    private Set<ItemEntity> items = new HashSet<>();
+    private List<ItemEntity> items;
 
     public Integer getId() {
         return id;
@@ -62,11 +60,11 @@ public class CategoryEntity implements Serializable {
         this.categoryName = categoryName;
     }
 
-    public Set<ItemEntity> getItems() {
+    public List<ItemEntity> getItems() {
         return items;
     }
 
-    public void setItems(Set<ItemEntity> items) {
+    public void setItems(List<ItemEntity> items) {
         this.items = items;
     }
 

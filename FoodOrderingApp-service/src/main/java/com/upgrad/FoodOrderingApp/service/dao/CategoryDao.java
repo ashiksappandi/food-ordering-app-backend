@@ -16,11 +16,15 @@ public class CategoryDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<CategoryEntity> getAllCategoriesOrderedByName() {
-        return entityManager.createNamedQuery("Category.fetchAllCategories", CategoryEntity.class).getResultList();
+    public List<CategoryEntity> getAllCategories() {
+        try {
+            return entityManager.createNamedQuery("Category.fetchAllCategories", CategoryEntity.class).getResultList();
+        } catch (NoResultException nre) {
+            return null;
+        }
     }
 
-    public CategoryEntity getCategory(String categoryId) {
+    public CategoryEntity getCategoryById(final String categoryId) {
         try {
             return entityManager.createNamedQuery("Category.fetchCategoryItem", CategoryEntity.class)
                     .setParameter("categoryId", categoryId)
