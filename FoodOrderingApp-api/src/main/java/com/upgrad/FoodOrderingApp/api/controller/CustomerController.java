@@ -30,8 +30,7 @@ import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.GEN_001
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
-    // TODO :
-    //  - Change Password - “/customer/password”
+
     @Autowired
     private CustomerService customerService;
 
@@ -93,5 +92,18 @@ public class CustomerController {
         final UpdateCustomerResponse response = new UpdateCustomerResponse();
         response.id(updatedCustomerEntity.getUuid()).firstName(updatedCustomerEntity.getFirstName()).lastName(updatedCustomerEntity.getLastName()).status("CUSTOMER DETAILS UPDATED SUCCESSFULLY");
         return new ResponseEntity<UpdateCustomerResponse>(response, HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, path = "/password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UpdatePasswordResponse> changePassword(@RequestHeader("authorization") final String headerParam, @RequestBody(required = false) final UpdatePasswordRequest request) throws UnexpectedException, AuthorizationFailedException, UpdateCustomerException {
+        final String accessToken = StringUtils.substringAfter(headerParam,"Bearer ");
+        if(accessToken == null || accessToken.isEmpty()){
+            throw new UnexpectedException(GEN_001);
+        }
+        final CustomerEntity customerEntity = customerService.getCustomer(accessToken);
+        final CustomerEntity updatedCustomerEntity = customerService.updateCustomerPassword(request.getOldPassword(),request.getNewPassword(),customerEntity);
+        final UpdatePasswordResponse response = new UpdatePasswordResponse();
+        response.id(updatedCustomerEntity.getUuid()).status("CUSTOMER PASSWORD UPDATED SUCCESSFULLY");
+        return new ResponseEntity<UpdatePasswordResponse>(response, HttpStatus.OK);
     }
 }

@@ -19,6 +19,7 @@ import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 import static com.upgrad.FoodOrderingApp.service.common.GenericErrorCode.*;
 
@@ -79,7 +80,7 @@ public class CustomerService {
             final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(encryptedPassword);
             final CustomerAuthEntity customerAuthEntity = new CustomerAuthEntity();
             customerAuthEntity.setCustomer(customerEntity);
-            customerAuthEntity.setUuid(customerEntity.getUuid());
+            customerAuthEntity.setUuid(UUID.randomUUID().toString());
             final ZonedDateTime loginAt = ZonedDateTime.now();
             final ZonedDateTime expiresAt = loginAt.plusHours(AppConstants.EIGHT_8);
             customerAuthEntity.setLoginAt(loginAt.toLocalDateTime());
@@ -116,8 +117,28 @@ public class CustomerService {
         }
     }
 
-    private CustomerEntity getCustomerByContactNumber(final String contactNumber){
-        return customerDao.getCustomerByContactNumber(contactNumber);
+    @Transactional(propagation = Propagation.REQUIRED)
+    public CustomerEntity updateCustomerPassword(final String oldPassword, final String newPassword, final CustomerEntity customerEntity) throws UpdateCustomerException {
+        if((oldPassword != null && !oldPassword.isEmpty()) && (newPassword != null && !newPassword.isEmpty())){
+            if(!isStrongPassword(newPassword)){
+                throw new UpdateCustomerException(UCR_001.getCode(),UCR_001.getDefaultMessage());
+            }
+            else{
+                final String encryptedOldPassword = PasswordCryptographyProvider.encrypt(oldPassword, customerEntity.getSalt());
+                if(encryptedOldPassword!=null && encryptedOldPassword.equals(customerEntity.getPassword())){
+                    final String[] encryptedText = passwordCryptographyProvider.encrypt(newPassword);
+                    customerEntity.setSalt(encryptedText[0]);
+                    customerEntity.setPassword(encryptedText[1]);
+                    return customerDao.updateCustomer(customerEntity);
+                }
+                else{
+                    throw new UpdateCustomerException(UCR_004.getCode(),UCR_004.getDefaultMessage());
+                }
+            }
+        }
+        else{
+            throw new UpdateCustomerException(UCR_003.getCode(), UCR_003.getDefaultMessage());
+        }
     }
 
     public CustomerAuthEntity getCustomerAuthenticationByAccessToken(final String accessToken) throws AuthorizationFailedException {
@@ -139,6 +160,10 @@ public class CustomerService {
         else{
             throw new AuthorizationFailedException(ATHR_001.getCode(),ATHR_001.getDefaultMessage());
         }
+    }
+
+    private CustomerEntity getCustomerByContactNumber(final String contactNumber){
+        return customerDao.getCustomerByContactNumber(contactNumber);
     }
 
     private boolean validateMandatoryFields(final CustomerEntity customerEntity){
