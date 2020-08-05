@@ -11,12 +11,15 @@ import java.util.Set;
 
 @Entity
 @Table(name = "customer")
+@NamedQueries({
+        @NamedQuery(name = "Customer.ByContact", query = "SELECT C FROM CustomerEntity C WHERE C.contactNumber = :contactNumber")
+})
 public class CustomerEntity implements Serializable {
 
     @Id
+    @GeneratedValue(generator = "customerIdGenerator")
+    @SequenceGenerator(name = "customerIdGenerator",sequenceName = "customer_id_seq",initialValue = 1,allocationSize = 1)
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customerIdGenerator")
-    @SequenceGenerator(name = "customerIdGenerator",sequenceName = "customer_id_seq")
     @ToStringExclude
     @HashCodeExclude
     private Integer id;
